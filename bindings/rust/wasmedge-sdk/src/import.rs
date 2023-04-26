@@ -311,6 +311,12 @@ impl ImportObject {
     }
 }
 
+impl From<sys::ImportObject> for ImportObject {
+    fn from(value: sys::ImportObject) -> Self {
+        Self(value)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

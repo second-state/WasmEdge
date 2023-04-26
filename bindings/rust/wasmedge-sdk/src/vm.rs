@@ -352,6 +352,33 @@ impl Vm {
         Ok(self)
     }
 
+    /// Registers an [import object](crate::ImportObject) into this vm.
+    ///
+    /// # Arguments
+    ///
+    /// * `import` - The import object to be registered.
+    ///
+    /// # Error
+    ///
+    /// If fail to register, then an error is returned.
+    pub fn register_import_module_(&mut self, import: ImportObject) -> WasmEdgeResult<&mut Self> {
+        match &import.0 {
+            sys::ImportObject::Import(_) => {
+                self.store
+                    .register_import_module(&mut self.executor, &import)?;
+
+                let import_instance = self.store.named_instance(import.name())?;
+                self.named_instances
+                    .insert(import.name().into(), import_instance);
+            }
+            _ => panic!("unsupported ImportObject type"),
+        }
+
+        self.imports.push(import);
+
+        Ok(self)
+    }
+
     /// Runs an exported wasm function in a (named or active) [module instance](crate::Instance).
     ///
     /// # Arguments

@@ -318,6 +318,14 @@ impl Executor {
     pub fn as_ptr(&self) -> *const ffi::WasmEdge_ExecutorContext {
         self.inner.0 as *const _
     }
+
+    #[cfg(feature = "ffi")]
+    pub unsafe fn from_raw(ctx: *mut ffi::WasmEdge_ExecutorContext, registered: bool) -> Self {
+        Self {
+            inner: Arc::new(InnerExecutor(ctx)),
+            registered,
+        }
+    }
 }
 impl Drop for Executor {
     fn drop(&mut self) {

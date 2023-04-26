@@ -89,6 +89,13 @@ impl CallingFrame {
     pub fn as_ptr(&self) -> *const ffi::WasmEdge_CallingFrameContext {
         self.inner.0 as *const _
     }
+
+    #[cfg(feature = "ffi")]
+    pub unsafe fn from_raw(ctx: *mut ffi::WasmEdge_CallingFrameContext) -> Self {
+        Self {
+            inner: InnerCallingFrame(ctx),
+        }
+    }
 }
 
 #[derive(Debug)]

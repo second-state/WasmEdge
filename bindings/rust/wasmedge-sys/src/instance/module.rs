@@ -264,6 +264,14 @@ impl Instance {
     pub fn as_ptr(&self) -> *const ffi::WasmEdge_ModuleInstanceContext {
         self.inner.0 as *const _
     }
+
+    #[cfg(feature = "ffi")]
+    pub fn from_raw(ctx: *mut ffi::WasmEdge_ModuleInstanceContext, registered: bool) -> Self {
+        Self {
+            inner: Arc::new(InnerInstance(ctx)),
+            registered,
+        }
+    }
 }
 impl Clone for Instance {
     fn clone(&self) -> Self {

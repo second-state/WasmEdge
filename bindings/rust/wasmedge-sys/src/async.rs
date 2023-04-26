@@ -112,11 +112,16 @@ unsafe impl Sync for AsyncState {}
 
 /// Defines an async execution context.
 #[derive(Debug)]
-pub(crate) struct AsyncCx {
+pub struct AsyncCx {
     current_suspend: *mut *const Suspend<Result<(), ()>, (), Result<(), ()>>,
     current_poll_cx: *mut *mut Context<'static>,
 }
 impl AsyncCx {
+    pub unsafe fn new() -> Self {
+        let async_state = ASYNC_STATE.read();
+        async_state.async_cx().unwrap()
+    }
+
     /// Runs a future to completion.
     ///
     /// # Arguments
@@ -126,7 +131,7 @@ impl AsyncCx {
     /// # Error
     ///
     /// If fail to run, then an error is returned.
-    pub(crate) unsafe fn block_on<U>(
+    pub unsafe fn block_on<U>(
         &self,
         mut future: Pin<&mut (dyn Future<Output = U> + Send)>,
     ) -> Result<U, ()> {
