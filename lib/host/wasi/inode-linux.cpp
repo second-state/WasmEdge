@@ -1290,9 +1290,9 @@ WasiExpect<void> INode::sockRecvFromV2(
   if (PortPtr) {
     *AddrFamily = fromAddressFamily(SockAddrStorage.ss_family);
     if (SockAddrStorage.ss_family == AF_INET) {
-      *PortPtr = reinterpret_cast<sockaddr_in *>(&SockAddrStorage)->sin_port;
+      *PortPtr = ntohs(reinterpret_cast<sockaddr_in *>(&SockAddrStorage)->sin_port);
     } else if (SockAddrStorage.ss_family == AF_INET6) {
-      *PortPtr = reinterpret_cast<sockaddr_in6 *>(&SockAddrStorage)->sin6_port;
+      *PortPtr = ntohs(reinterpret_cast<sockaddr_in6 *>(&SockAddrStorage)->sin6_port);
     }
   }
 
