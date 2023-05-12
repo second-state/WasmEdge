@@ -238,10 +238,11 @@ impl Func {
     #[cfg(feature = "async")]
     pub async fn run_async(
         &self,
+        async_state: &sys::r#async::AsyncState,
         executor: &Executor,
         args: impl IntoIterator<Item = WasmValue> + Send,
     ) -> WasmEdgeResult<Vec<WasmValue>> {
-        executor.run_func_async(self, args).await
+        executor.run_func_async(async_state, self, args).await
     }
 }
 
@@ -355,10 +356,11 @@ impl FuncRef {
     #[cfg(feature = "async")]
     pub async fn run_async(
         &self,
+        async_state: &r#sys::r#async::AsyncState,
         executor: &Executor,
         args: impl IntoIterator<Item = WasmValue> + Send,
     ) -> WasmEdgeResult<Vec<WasmValue>> {
-        executor.run_func_ref_async(self, args).await
+        executor.run_func_ref_async(async_state, self, args).await
     }
 }
 

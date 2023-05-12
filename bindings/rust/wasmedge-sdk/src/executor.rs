@@ -70,10 +70,13 @@ impl Executor {
     #[cfg(feature = "async")]
     pub async fn run_func_async(
         &self,
+        async_state: &sys::r#async::AsyncState,
         func: &Func,
         params: impl IntoIterator<Item = WasmValue> + Send,
     ) -> WasmEdgeResult<Vec<WasmValue>> {
-        self.inner.call_func_async(&func.inner, params).await
+        self.inner
+            .call_func_async(async_state, &func.inner, params)
+            .await
     }
 
     /// Runs a host function reference instance and returns the results.
@@ -109,11 +112,12 @@ impl Executor {
     #[cfg(feature = "async")]
     pub async fn run_func_ref_async(
         &self,
+        async_state: &sys::r#async::AsyncState,
         func_ref: &FuncRef,
         params: impl IntoIterator<Item = WasmValue> + Send,
     ) -> WasmEdgeResult<Vec<WasmValue>> {
         self.inner
-            .call_func_ref_async(&func_ref.inner, params)
+            .call_func_ref_async(async_state, &func_ref.inner, params)
             .await
     }
 }

@@ -128,6 +128,8 @@ impl VmBuilder {
             imports: Vec::new(),
             builtin_host_instances: HashMap::new(),
             plugin_host_instances: Vec::new(),
+            #[cfg(feature = "async")]
+            async_ctx: sys::r#async::AsyncState::new(),
         };
 
         // * built-in host instances
@@ -231,7 +233,7 @@ impl VmBuilder {
 ///     Ok(())
 /// }
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Vm {
     pub(crate) config: Option<Config>,
     stat: Option<Statistics>,
@@ -242,6 +244,8 @@ pub struct Vm {
     imports: Vec<ImportObject>,
     builtin_host_instances: HashMap<HostRegistration, HostRegistrationInstance>,
     plugin_host_instances: Vec<Instance>,
+    #[cfg(feature = "async")]
+    async_ctx: sys::r#async::AsyncState,
 }
 impl Vm {
     /// Registers a [wasm module](crate::Module) into this vm as a named or active module [instance](crate::Instance).
@@ -463,7 +467,7 @@ impl Vm {
                 Some(named_instance) => {
                     named_instance
                         .func(func_name.as_ref())?
-                        .run_async(self.executor(), args)
+                        .run_async(&self.async_ctx, self.executor(), args)
                         .await
                 }
                 None => Err(Box::new(WasmEdgeError::Vm(VmError::NotFoundModule(
@@ -474,7 +478,7 @@ impl Vm {
                 Some(active_instance) => {
                     active_instance
                         .func(func_name.as_ref())?
-                        .run_async(self.executor(), args)
+                        .run_async(&self.async_ctx, self.executor(), args)
                         .await
                 }
                 None => Err(Box::new(WasmEdgeError::Vm(VmError::NotFoundActiveModule))),

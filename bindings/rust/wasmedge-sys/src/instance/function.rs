@@ -1,12 +1,12 @@
 //! Defines WasmEdge Function and FuncType structs.
 
+#[cfg(feature = "async")]
+use crate::r#async::{AsyncState, FiberFuture};
 use crate::{
     error::{FuncError, HostFuncError, WasmEdgeError},
     ffi, BoxedFn, CallingFrame, Engine, WasmEdgeResult, WasmValue, HOST_FUNCS,
     HOST_FUNC_FOOTPRINTS,
 };
-#[cfg(feature = "async")]
-use crate::{r#async::FiberFuture, ASYNC_STATE};
 use core::ffi::c_void;
 use parking_lot::Mutex;
 use rand::Rng;
@@ -281,12 +281,12 @@ impl Function {
             + 'static,
         cost: u64,
     ) -> WasmEdgeResult<Self> {
+        use crate::r#async::AsyncCx;
+
         Self::create(
             ty,
             Box::new(move |frame, args| {
-                let async_state = ASYNC_STATE.read();
-                let async_cx = async_state.async_cx().unwrap();
-                drop(async_state);
+                let async_cx = unsafe { AsyncCx::new() };
                 let mut future = Pin::from(real_fn(frame, args));
                 match unsafe { async_cx.block_on(future.as_mut()) } {
                     Ok(Ok(ret)) => Ok(ret),
@@ -486,10 +486,11 @@ impl Function {
     #[cfg(feature = "async")]
     pub async fn call_async<E: Engine + Send + Sync>(
         &self,
+        async_state: &AsyncState,
         engine: &mut E,
         args: impl IntoIterator<Item = WasmValue> + Send,
     ) -> WasmEdgeResult<Vec<WasmValue>> {
-        FiberFuture::on_fiber(|| engine.run_func(self, args))
+        FiberFuture::on_fiber(async_state, || engine.run_func(self, args))
             .await
             .unwrap()
     }
