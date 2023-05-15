@@ -127,11 +127,6 @@ lazy_static! {
     static ref HOST_FUNC_FOOTPRINTS: Mutex<HashMap<usize, usize>> = Mutex::new(HashMap::new());
 }
 
-#[cfg(feature = "async")]
-lazy_static! {
-    static ref ASYNC_STATE: RwLock<r#async::AsyncState> = RwLock::new(r#async::AsyncState::new());
-}
-
 /// The object that is used to perform a [host function](crate::Function) is required to implement this trait.
 pub trait Engine {
     /// Runs a host function instance and returns the results.

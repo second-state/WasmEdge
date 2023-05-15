@@ -129,7 +129,7 @@ impl VmBuilder {
             builtin_host_instances: HashMap::new(),
             plugin_host_instances: Vec::new(),
             #[cfg(feature = "async")]
-            async_ctx: sys::r#async::AsyncState::new(),
+            async_ctx: Box::new(sys::r#async::AsyncState::new()),
         };
 
         // * built-in host instances
@@ -245,7 +245,7 @@ pub struct Vm {
     builtin_host_instances: HashMap<HostRegistration, HostRegistrationInstance>,
     plugin_host_instances: Vec<Instance>,
     #[cfg(feature = "async")]
-    async_ctx: sys::r#async::AsyncState,
+    async_ctx: Box<sys::r#async::AsyncState>,
 }
 impl Vm {
     /// Registers a [wasm module](crate::Module) into this vm as a named or active module [instance](crate::Instance).
