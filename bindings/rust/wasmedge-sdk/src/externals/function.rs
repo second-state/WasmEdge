@@ -224,6 +224,15 @@ impl Func {
         executor.run_func(self, args)
     }
 
+    pub fn run_timeout(
+        &self,
+        executor: &Executor,
+        args: impl IntoIterator<Item = WasmValue>,
+        timeout_sec: u64,
+    ) -> WasmEdgeResult<Vec<WasmValue>> {
+        executor.run_func_timeout(self, args, timeout_sec)
+    }
+
     /// Asynchronously runs this host function and returns the result.
     ///
     /// # Arguments
