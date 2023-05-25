@@ -253,6 +253,19 @@ impl Func {
     ) -> WasmEdgeResult<Vec<WasmValue>> {
         executor.run_func_async(async_state, self, args).await
     }
+
+    #[cfg(feature = "async")]
+    pub async fn run_async_timeout(
+        &self,
+        async_state: &sys::r#async::AsyncState,
+        executor: &Executor,
+        args: impl IntoIterator<Item = WasmValue> + Send,
+        timeout_sec: u64,
+    ) -> WasmEdgeResult<Vec<WasmValue>> {
+        executor
+            .run_func_async_timeout(async_state, self, args, timeout_sec)
+            .await
+    }
 }
 
 /// Defines a type builder for creating a [FuncType](https://wasmedge.github.io/WasmEdge/wasmedge_types/struct.FuncType.html) instance.

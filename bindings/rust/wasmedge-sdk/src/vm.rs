@@ -306,6 +306,23 @@ impl Vm {
         self.register_module(Some(mod_name.as_ref()), module)
     }
 
+    pub fn register_module_from_file_(
+        &mut self,
+        mod_name: impl AsRef<str>,
+        file: impl AsRef<Path>,
+    ) -> WasmEdgeResult<&mut Self> {
+        // load module from file
+        let module = Module::from_file(self.config.as_ref(), file.as_ref())?;
+
+        // register the named module
+        let name = mod_name.as_ref();
+        let named_instance = self
+            .store
+            .register_named_module(&mut self.executor, name, &module)?;
+        self.named_instances.insert(name.into(), named_instance);
+        Ok(self)
+    }
+
     /// Registers a wasm module from the given in-memory wasm bytes into this vm.
     ///
     /// # Arguments
@@ -508,6 +525,38 @@ impl Vm {
                     active_instance
                         .func(func_name.as_ref())?
                         .run_async(&self.async_ctx, self.executor(), args)
+                        .await
+                }
+                None => Err(Box::new(WasmEdgeError::Vm(VmError::NotFoundActiveModule))),
+            },
+        }
+    }
+
+    #[cfg(feature = "async")]
+    pub async fn run_func_async_timeout(
+        &self,
+        mod_name: Option<&str>,
+        func_name: impl AsRef<str> + Send,
+        args: impl IntoIterator<Item = WasmValue> + Send,
+        timeout_sec: u64,
+    ) -> WasmEdgeResult<Vec<WasmValue>> {
+        match mod_name {
+            Some(mod_name) => match self.named_instances.get(mod_name) {
+                Some(named_instance) => {
+                    named_instance
+                        .func(func_name.as_ref())?
+                        .run_async_timeout(&self.async_ctx, self.executor(), args, timeout_sec)
+                        .await
+                }
+                None => Err(Box::new(WasmEdgeError::Vm(VmError::NotFoundModule(
+                    mod_name.into(),
+                )))),
+            },
+            None => match self.active_instance.as_ref() {
+                Some(active_instance) => {
+                    active_instance
+                        .func(func_name.as_ref())?
+                        .run_async_timeout(&self.async_ctx, self.executor(), args, timeout_sec)
                         .await
                 }
                 None => Err(Box::new(WasmEdgeError::Vm(VmError::NotFoundActiveModule))),
